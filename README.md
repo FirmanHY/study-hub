@@ -58,45 +58,70 @@ Aplikasi web produktivitas mahasiswa yang dibangun dengan **React.js + Vite + Fi
 studyhub/
 ├── public/
 ├── src/
-│   ├── main.jsx                     # entry point (Router + AuthProvider)
-│   ├── App.jsx                      # routing
-│   ├── index.css                    # global styles + design tokens
+│   ├── main.jsx                          # entry point (ReactDOM + StrictMode)
+│   ├── App.jsx                           # routing + AuthProvider
 │   │
-│   ├── firebase/config.js           # init Firebase dari env vars
-│   ├── contexts/AuthContext.jsx     # global auth state + useAuth hook
+│   ├── firebase/
+│   │   └── config.js                     # init Firebase dari env vars
 │   │
-│   ├── services/                    # ⬅ pure functions, no React deps
-│   │   ├── notesService.js          # CRUD #1 — Notes
-│   │   ├── tasksService.js          # CRUD #2 — Tasks
-│   │   ├── flashcardsService.js     # CRUD #3 — Flashcards
-│   │   └── cloudinaryService.js     # upload gambar ke Cloudinary
+│   ├── contexts/
+│   │   └── AuthContext.jsx               # global auth state + useAuth hook
 │   │
-│   ├── hooks/                       # ⬅ wrap services + manage state
+│   ├── services/                         # ⬅ pure functions, no React deps
+│   │   ├── notesService.js               # CRUD #1 — Notes
+│   │   ├── tasksService.js               # CRUD #2 — Tasks
+│   │   ├── flashcardsService.js          # CRUD #3 — Flashcards
+│   │   └── cloudinaryService.js          # upload gambar ke Cloudinary
+│   │
+│   ├── hooks/                            # ⬅ wrap services + manage state
 │   │   ├── useNotes.js
 │   │   ├── useTasks.js
 │   │   └── useFlashcards.js
 │   │
 │   ├── components/
-│   │   ├── ProtectedRoute.jsx       # route guard
-│   │   ├── Navbar.jsx
-│   │   ├── VerifyBanner.jsx
-│   │   ├── notes/{NoteForm,NoteList}.jsx
-│   │   ├── tasks/{TaskForm,TaskList}.jsx
-│   │   └── flashcards/{FlashcardForm,FlashcardList}.jsx
+│   │   ├── Layout.jsx                    # sidebar + main content wrapper (Outlet)
+│   │   ├── Navbar.jsx                    # header bar (legacy/alternatif)
+│   │   ├── ProtectedRoute.jsx            # route guard
+│   │   ├── VerifyBanner.jsx              # banner email verification
+│   │   ├── emptystate/
+│   │   │   ├── EmptyState.jsx            # komponen empty state reusable
+│   │   │   └── EmptyState.css
+│   │   ├── searchbar/
+│   │   │   ├── SearchBar.jsx             # komponen search bar reusable
+│   │   │   └── SearchBar.css
+│   │   ├── skeleton/
+│   │   │   └── SkeletonCard.jsx          # skeleton loading placeholder
+│   │   ├── flashcardflip/
+│   │   │   ├── FlashCardFlip.jsx         # flip card untuk mode belajar
+│   │   │   └── FlashCardFlip.css
+│   │   ├── notes/
+│   │   │   └── NoteForm.jsx              # form create/edit catatan
+│   │   ├── tasks/
+│   │   │   └── TaskForm.jsx              # form create/edit tugas
+│   │   └── flashcards/
+│   │       └── FlashcardForm.jsx         # form create/edit flashcard
 │   │
-│   └── pages/
-│       ├── Login.jsx
-│       ├── Register.jsx
-│       └── Dashboard.jsx
+│   ├── pages/
+│   │   ├── LoginPage.jsx                 # halaman login
+│   │   ├── RegisterPage.jsx              # halaman register
+│   │   ├── NotesPage.jsx                 # halaman CRUD catatan + search
+│   │   ├── TasksPage.jsx                 # halaman CRUD tugas + filter status
+│   │   └── FlashcardsPage.jsx            # halaman CRUD flashcards + mode belajar
+│   │
+│   ├── styles/
+│   │   └── responsive.css                # global styles, layout, cards, modal, skeleton
+│   │
+│   └── utils/
+│       └── searchFilter.js               # helper filter/search untuk Notes & Tasks
 │
-├── server.js                        # Express server untuk Railway
-├── .env.example                     # template environment variables
+├── server.js                             # Express server untuk Railway (SPA fallback)
+├── .env.example                          # template environment variables
 ├── .gitignore
-├── index.html                       # Vite entry HTML
+├── index.html                            # Vite entry HTML
 ├── package.json
 ├── vite.config.js
-├── firebase.json                    # database rules config (opsional)
-├── database.rules.json              # Realtime Database security rules
+├── firebase.json                         # database rules config (opsional)
+├── database.rules.json                   # Realtime Database security rules
 └── README.md
 ```
 
