@@ -8,17 +8,17 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+
+// Serve static files dari folder dist (hasil build Vite)
+app.use(express.static(path.join(__dirname, "dist")));
+
+// SPA fallback: semua route diarahkan ke index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
+
 const PORT = process.env.PORT || 3000;
-
-const distPath = path.join(__dirname, "dist");
-
-app.use(express.static(distPath));
-
-// SPA fallback — semua route yang tidak match static asset di-rewrite ke index.html
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(distPath, "index.html"));
-});
-
 app.listen(PORT, () => {
-  console.log(`✅ StudyHub server berjalan di port ${PORT}`);
+  console.log(`StudyHub server running on port ${PORT}`);
 });
+

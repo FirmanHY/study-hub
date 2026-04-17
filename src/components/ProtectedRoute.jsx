@@ -6,7 +6,16 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div style={{ padding: 40, textAlign: "center" }}>Loading...</div>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        fontSize: "1.1rem",
+        color: "#888",
+      }}>
+        Memuat...
+      </div>
     );
   }
 

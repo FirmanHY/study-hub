@@ -1,0 +1,175 @@
+.flashcard-study {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+  outline: none;
+}
+
+/* ===== Progress Bar ===== */
+.progress-bar {
+  width: 100%;
+  max-width: 480px;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: #e0e7ef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ===== Flip Card ===== */
+.flip-card {
+  width: 100%;
+  max-width: 480px;
+  height: 280px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-card-inner {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.flip-card-front {
+  background: #ffffff;
+  border: 2px solid #e0e7ef;
+}
+
+.flip-card-back {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  transform: rotateY(180deg);
+}
+
+.label {
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.card-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.5;
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.hint {
+  font-size: 0.75rem;
+  opacity: 0.4;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.hint-back {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ===== Navigation ===== */
+.nav-buttons {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e0e7ef;
+  background: #fff;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f0f0ff;
+}
+
+.nav-btn:active {
+  transform: scale(0.97);
+}
+
+.keyboard-hint {
+  font-size: 0.75rem;
+  color: #aaa;
+  text-align: center;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .flip-card {
+    height: 220px;
+  }
+
+  .card-text {
+    font-size: 1rem;
+  }
+
+  .flip-card-front,
+  .flip-card-back {
+    padding: 1.5rem;
+  }
+
+  .nav-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .keyboard-hint {
+    display: none;
+  }
+}

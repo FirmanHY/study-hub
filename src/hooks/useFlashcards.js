@@ -9,10 +9,13 @@ export function useFlashcards() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = flashcardsService.subscribeFlashcards(user.uid, (items) => {
-      setFlashcards(items);
-      setLoading(false);
-    });
+    const unsubscribe = flashcardsService.subscribeFlashcards(
+      user.uid,
+      (items) => {
+        setFlashcards(items);
+        setLoading(false);
+      }
+    );
     return unsubscribe;
   }, [user]);
 
@@ -33,3 +36,4 @@ export function useFlashcards() {
 
   return { flashcards, loading, create, update, remove };
 }
+

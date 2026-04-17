@@ -11,6 +11,13 @@ import { auth } from "../firebase/config.js";
 
 const AuthContext = createContext(null);
 
+// Custom hook — dipakai di seluruh app
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth harus dipakai di dalam AuthProvider");
+  return ctx;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,12 +56,9 @@ export function AuthProvider({ children }) {
 
   const value = { user, loading, register, login, logout, resendVerification };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-// Custom hook untuk akses context
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

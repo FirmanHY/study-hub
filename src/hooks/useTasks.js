@@ -26,15 +26,10 @@ export function useTasks() {
     [user]
   );
 
-  const toggleDone = useCallback(
-    (id, currentDone) => tasksService.updateTask(user.uid, id, { done: !currentDone }),
-    [user]
-  );
-
   const remove = useCallback(
     (id) => tasksService.deleteTask(user.uid, id),
     [user]
   );
 
-  return { tasks, loading, create, update, toggleDone, remove };
+  return { tasks, loading, create, update, remove };
 }

@@ -1,133 +1,159 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { uploadImage } from "../../services/cloudinaryService.js";
 
-const EMPTY = { title: "", content: "" };
-
-export default function NoteForm({ onSubmit, editing, onCancelEdit }) {
-  const [form, setForm] = useState(EMPTY);
+export default function NoteForm({ initialData, onSubmit, onCancel }) {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [content, setContent] = useState(initialData?.content || "");
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState("");
+  const [imagePreview, setImagePreview] = useState(initialData?.imageUrl || null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (editing) {
-      setForm({ title: editing.title, content: editing.content });
-      setImagePreview(editing.imageUrl || null);
-    } else {
-      setForm(EMPTY);
-      setImagePreview(null);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
     }
-    setImageFile(null);
-    setUploadStatus("");
-  }, [editing]);
+  };
 
-  function handleChange(e) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  }
-
-  function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("File harus berupa gambar.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Ukuran gambar maksimal 5MB.");
-      return;
-    }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  }
-
-  function handleRemoveImage() {
+  const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview(null);
-  }
+  };
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.content.trim()) return;
+    if (!title.trim()) return;
 
-    setSubmitting(true);
+    setLoading(true);
     try {
-      let imageData = {};
+      let imageUrl = initialData?.imageUrl || null;
+      let imagePublicId = initialData?.imagePublicId || null;
 
-      // Upload ke Cloudinary jika ada file baru
+      // Upload gambar baru jika ada
       if (imageFile) {
-        setUploadStatus("Mengupload gambar...");
-        const uploaded = await uploadImage(imageFile);
-        imageData = { imageUrl: uploaded.url, imagePublicId: uploaded.publicId };
-      } else if (editing && !imagePreview) {
-        // Gambar lama dihapus user
-        imageData = { imageUrl: null, imagePublicId: null };
+        const result = await uploadImage(imageFile);
+        imageUrl = result.url;
+        imagePublicId = result.publicId;
+      } else if (!imagePreview && initialData?.imageUrl) {
+        // Gambar dihapus
+        imageUrl = null;
+        imagePublicId = null;
       }
 
-      setUploadStatus("Menyimpan...");
-      await onSubmit({ ...form, ...imageData });
-
-      setForm(EMPTY);
-      setImageFile(null);
-      setImagePreview(null);
+      await onSubmit({ title, content, imageUrl, imagePublicId });
     } catch (err) {
-      alert("Gagal menyimpan: " + err.message);
+      console.error("Gagal menyimpan catatan:", err);
+      alert("Gagal menyimpan. Coba lagi.");
     } finally {
-      setSubmitting(false);
-      setUploadStatus("");
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <form className="entity-form" onSubmit={handleSubmit}>
-      <input
-        name="title"
-        placeholder="Judul catatan"
-        value={form.title}
-        onChange={handleChange}
-        required
-      />
-      <textarea
-        name="content"
-        placeholder="Isi catatan"
-        value={form.content}
-        onChange={handleChange}
-        required
-      />
-
-      <label className="file-input-label">
-        📎 {imageFile ? imageFile.name : "Tambah gambar (opsional)"}
+    <form onSubmit={handleSubmit} style={styles.form}>
+      <div style={styles.field}>
+        <label style={styles.label}>Judul</label>
         <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          style={{ display: "none" }}
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          style={styles.input}
+          placeholder="Judul catatan"
         />
-      </label>
+      </div>
 
-      {imagePreview && (
-        <div className="image-preview">
-          <img src={imagePreview} alt="preview" />
-          <button type="button" className="remove-img" onClick={handleRemoveImage}>
-            ✕ Hapus gambar
-          </button>
-        </div>
-      )}
+      <div style={styles.field}>
+        <label style={styles.label}>Isi Catatan</label>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          style={{ ...styles.input, minHeight: "120px", resize: "vertical" }}
+          placeholder="Tulis isi catatan di sini..."
+        />
+      </div>
 
-      <div className="form-actions">
-        <button type="submit" disabled={submitting}>
-          {submitting
-            ? uploadStatus || "Menyimpan..."
-            : editing
-            ? "Update Note"
-            : "Tambah Note"}
-        </button>
-        {editing && (
-          <button type="button" className="cancel" onClick={onCancelEdit}>
-            Batal
-          </button>
+      <div style={styles.field}>
+        <label style={styles.label}>Lampiran Gambar (opsional)</label>
+        <input type="file" accept="image/*" onChange={handleImageChange} />
+        {imagePreview && (
+          <div style={{ marginTop: "0.5rem", position: "relative" }}>
+            <img
+              src={imagePreview}
+              alt="Preview"
+              style={{
+                width: "100%",
+                maxHeight: "150px",
+                objectFit: "cover",
+                borderRadius: "8px",
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              style={styles.removeImg}
+            >
+              ✕
+            </button>
+          </div>
         )}
+      </div>
+
+      <div style={styles.actions}>
+        <button type="button" onClick={onCancel} style={styles.cancelBtn}>
+          Batal
+        </button>
+        <button type="submit" disabled={loading} style={styles.submitBtn}>
+          {loading ? "Menyimpan..." : initialData ? "Update" : "Simpan"}
+        </button>
       </div>
     </form>
   );
 }
+
+const styles = {
+  form: { display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" },
+  field: { display: "flex", flexDirection: "column", gap: "0.3rem" },
+  label: { fontSize: "0.85rem", fontWeight: 600, color: "#444" },
+  input: {
+    padding: "0.75rem 1rem",
+    border: "2px solid #e0e7ef",
+    borderRadius: "12px",
+    fontSize: "0.95rem",
+    outline: "none",
+    fontFamily: "inherit",
+  },
+  actions: { display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "0.5rem" },
+  cancelBtn: {
+    padding: "0.7rem 1.5rem",
+    background: "#f5f5f5",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+  },
+  submitBtn: {
+    padding: "0.7rem 1.5rem",
+    background: "linear-gradient(135deg, #667eea, #764ba2)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    fontWeight: 600,
+  },
+  removeImg: {
+    position: "absolute",
+    top: "8px",
+    right: "8px",
+    background: "rgba(0,0,0,0.6)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "50%",
+    width: "28px",
+    height: "28px",
+    cursor: "pointer",
+    fontSize: "0.8rem",
+  },
+};
