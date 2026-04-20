@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./FlashcardFlip.css";
+import "./FlashCardFlip.css";
 
 export default function FlashcardFlip({ cards }) {
   const [currentIndex, setCurrentIndex] = useState(0);
