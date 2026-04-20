@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import "./ImageLightBox.css";
+import "./ImageLightbox.css";
 
 /**
  * Image lightbox / fullscreen preview.
@@ -9,7 +9,7 @@ import "./ImageLightBox.css";
  * - Tombol close (X) di pojok kanan atas
  * - Caption (opsional) dari props.caption
  */
-export default function ImageLightBox({ src, alt, caption, onClose }) {
+export default function ImageLightbox({ src, alt, caption, onClose }) {
   // Handle ESC key untuk tutup lightbox
   useEffect(() => {
     const handleKey = (e) => {
