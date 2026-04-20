@@ -1,19 +1,39 @@
 import { useState } from "react";
 import { uploadImage } from "../../services/cloudinaryService.js";
+import { useToast } from "../../contexts/ToastContext.jsx";
+
+// Max 10MB — sesuai limit Cloudinary free tier
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function NoteForm({ initialData, onSubmit, onCancel }) {
+  const { toast } = useToast();
   const [title, setTitle] = useState(initialData?.title || "");
   const [content, setContent] = useState(initialData?.content || "");
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(initialData?.imageUrl || null);
+  const [imagePreview, setImagePreview] = useState(
+    initialData?.imageUrl || null
+  );
   const [loading, setLoading] = useState(false);
+  const [titleError, setTitleError] = useState("");
 
+  // Validasi file sebelum di-upload: tipe harus image & max 10MB
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File yang dipilih harus berupa gambar.");
+      e.target.value = "";
+      return;
     }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Ukuran gambar terlalu besar. Maksimal 10MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleRemoveImage = () => {
@@ -23,45 +43,66 @@ export default function NoteForm({ initialData, onSubmit, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+
+    // Validasi: judul wajib
+    if (!title.trim()) {
+      setTitleError("Judul wajib diisi.");
+      return;
+    }
+    setTitleError("");
 
     setLoading(true);
     try {
       let imageUrl = initialData?.imageUrl || null;
       let imagePublicId = initialData?.imagePublicId || null;
 
-      // Upload gambar baru jika ada
+      // Upload gambar baru jika ada. Tag error sebagai "upload"
+      // supaya dispatcher di errorMessages.js bisa kasih pesan yang sesuai.
       if (imageFile) {
-        const result = await uploadImage(imageFile);
-        imageUrl = result.url;
-        imagePublicId = result.publicId;
+        try {
+          const result = await uploadImage(imageFile);
+          imageUrl = result.url;
+          imagePublicId = result.publicId;
+        } catch (uploadErr) {
+          uploadErr.stage = "upload";
+          throw uploadErr;
+        }
       } else if (!imagePreview && initialData?.imageUrl) {
-        // Gambar dihapus
+        // User hapus gambar existing
         imageUrl = null;
         imagePublicId = null;
       }
 
-      await onSubmit({ title, content, imageUrl, imagePublicId });
+      await onSubmit({ title: title.trim(), content, imageUrl, imagePublicId });
+      // Parent yang menutup modal + tampilkan toast sukses
     } catch (err) {
-      console.error("Gagal menyimpan catatan:", err);
-      alert("Gagal menyimpan. Coba lagi.");
+      // Parent sudah menampilkan toast error + re-throw.
+      // Kita swallow di sini supaya tidak ada unhandled rejection.
+      // Input form tetap diisi supaya user bisa retry tanpa ketik ulang.
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={styles.form}>
+    <form onSubmit={handleSubmit} style={styles.form} noValidate>
       <div style={styles.field}>
         <label style={styles.label}>Judul</label>
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          style={styles.input}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            if (titleError) setTitleError("");
+          }}
+          style={{
+            ...styles.input,
+            borderColor: titleError ? "#dc2626" : "#e0e7ef",
+          }}
           placeholder="Judul catatan"
+          maxLength={200}
         />
+        {titleError && <span style={styles.fieldError}>{titleError}</span>}
       </div>
 
       <div style={styles.field}>
@@ -71,12 +112,23 @@ export default function NoteForm({ initialData, onSubmit, onCancel }) {
           onChange={(e) => setContent(e.target.value)}
           style={{ ...styles.input, minHeight: "120px", resize: "vertical" }}
           placeholder="Tulis isi catatan di sini..."
+          maxLength={5000}
         />
       </div>
 
       <div style={styles.field}>
-        <label style={styles.label}>Lampiran Gambar (opsional)</label>
-        <input type="file" accept="image/*" onChange={handleImageChange} />
+        <label style={styles.label}>
+          Lampiran Gambar{" "}
+          <span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#888" }}>
+            (opsional, max 10MB)
+          </span>
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          disabled={loading}
+        />
         {imagePreview && (
           <div style={{ marginTop: "0.5rem", position: "relative" }}>
             <img
@@ -93,6 +145,7 @@ export default function NoteForm({ initialData, onSubmit, onCancel }) {
               type="button"
               onClick={handleRemoveImage}
               style={styles.removeImg}
+              disabled={loading}
             >
               ✕
             </button>
@@ -101,7 +154,12 @@ export default function NoteForm({ initialData, onSubmit, onCancel }) {
       </div>
 
       <div style={styles.actions}>
-        <button type="button" onClick={onCancel} style={styles.cancelBtn}>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={styles.cancelBtn}
+          disabled={loading}
+        >
           Batal
         </button>
         <button type="submit" disabled={loading} style={styles.submitBtn}>
@@ -113,7 +171,12 @@ export default function NoteForm({ initialData, onSubmit, onCancel }) {
 }
 
 const styles = {
-  form: { display: "flex", flexDirection: "column", gap: "1rem", marginTop: "1rem" },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+    marginTop: "1rem",
+  },
   field: { display: "flex", flexDirection: "column", gap: "0.3rem" },
   label: { fontSize: "0.85rem", fontWeight: 600, color: "#444" },
   input: {
@@ -123,8 +186,19 @@ const styles = {
     fontSize: "0.95rem",
     outline: "none",
     fontFamily: "inherit",
+    transition: "border-color 0.2s",
   },
-  actions: { display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "0.5rem" },
+  fieldError: {
+    fontSize: "0.8rem",
+    color: "#dc2626",
+    marginTop: "0.15rem",
+  },
+  actions: {
+    display: "flex",
+    gap: "0.75rem",
+    justifyContent: "flex-end",
+    marginTop: "0.5rem",
+  },
   cancelBtn: {
     padding: "0.7rem 1.5rem",
     background: "#f5f5f5",

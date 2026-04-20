@@ -1,32 +1,49 @@
 import { useState } from "react";
 import { useFlashcards } from "../hooks/useFlashcards";
+import { getErrorMessage } from "../utils/errorMessages";
+import { useToast } from "../contexts/ToastContext";
 import FlashcardFlip from "../components/flashcardflip/FlashCardFlip";
 import EmptyState from "../components/emptystate/EmptyState";
 import SkeletonCard from "../components/skeleton/SkeletonCard";
 import FlashcardForm from "../components/flashcards/FlashcardForm";
 
-
 export default function FlashcardsPage() {
   const { flashcards, loading, create, update, remove } = useFlashcards();
+  const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [studyMode, setStudyMode] = useState(false);
 
   const handleCreate = async (data) => {
-    await create(data);
-    setShowForm(false);
+    try {
+      await create(data);
+      toast.success("Flashcard berhasil dibuat!");
+      setShowForm(false);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal membuat flashcard."));
+      throw err;
+    }
   };
 
   const handleUpdate = async (data) => {
-    if (editingCard) {
+    if (!editingCard) return;
+    try {
       await update(editingCard.id, data);
+      toast.success("Flashcard berhasil diperbarui!");
       setEditingCard(null);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal memperbarui flashcard."));
+      throw err;
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Yakin ingin menghapus flashcard ini?")) {
+    if (!window.confirm("Yakin ingin menghapus flashcard ini?")) return;
+    try {
       await remove(id);
+      toast.success("Flashcard berhasil dihapus.");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal menghapus flashcard."));
     }
   };
 
@@ -130,16 +147,10 @@ export default function FlashcardsPage() {
                   })}
                 </span>
                 <div className="card-actions">
-                  <button
-                    onClick={() => setEditingCard(card)}
-                    title="Edit"
-                  >
+                  <button onClick={() => setEditingCard(card)} title="Edit">
                     ✏️
                   </button>
-                  <button
-                    onClick={() => handleDelete(card.id)}
-                    title="Hapus"
-                  >
+                  <button onClick={() => handleDelete(card.id)} title="Hapus">
                     🗑️
                   </button>
                 </div>

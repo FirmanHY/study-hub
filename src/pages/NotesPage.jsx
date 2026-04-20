@@ -1,35 +1,54 @@
 import { useState } from "react";
 import { useNotes } from "../hooks/useNotes";
 import { searchNotes } from "../utils/searchFilter";
+import { getErrorMessage } from "../utils/errorMessages";
+import { useToast } from "../contexts/ToastContext";
 import SearchBar from "../components/searchbar/SearchBar";
 import SkeletonCard from "../components/skeleton/SkeletonCard";
 import EmptyState from "../components/emptystate/EmptyState";
-import NoteForm from "../components/notes/NoteForm"
-
+import NoteForm from "../components/notes/NoteForm";
 
 export default function NotesPage() {
   const { notes, loading, create, update, remove } = useNotes();
+  const { toast } = useToast();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
 
   const filteredNotes = searchNotes(notes, searchKeyword);
 
+  // CREATE — sukses tampilkan toast, gagal tampilkan error + re-throw
+  // supaya form tidak menganggap sukses & tidak reset input
   const handleCreate = async (data) => {
-    await create(data);
-    setShowForm(false);
+    try {
+      await create(data);
+      toast.success("Catatan berhasil dibuat!");
+      setShowForm(false);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal membuat catatan."));
+      throw err;
+    }
   };
 
   const handleUpdate = async (data) => {
-    if (editingNote) {
+    if (!editingNote) return;
+    try {
       await update(editingNote.id, data);
+      toast.success("Catatan berhasil diperbarui!");
       setEditingNote(null);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal memperbarui catatan."));
+      throw err;
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Yakin ingin menghapus catatan ini?")) {
+    if (!window.confirm("Yakin ingin menghapus catatan ini?")) return;
+    try {
       await remove(id);
+      toast.success("Catatan berhasil dihapus.");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal menghapus catatan."));
     }
   };
 
@@ -99,16 +118,10 @@ export default function NotesPage() {
                   })}
                 </span>
                 <div className="card-actions">
-                  <button
-                    onClick={() => setEditingNote(note)}
-                    title="Edit"
-                  >
+                  <button onClick={() => setEditingNote(note)} title="Edit">
                     ✏️
                   </button>
-                  <button
-                    onClick={() => handleDelete(note.id)}
-                    title="Hapus"
-                  >
+                  <button onClick={() => handleDelete(note.id)} title="Hapus">
                     🗑️
                   </button>
                 </div>
@@ -123,7 +136,10 @@ export default function NotesPage() {
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Buat Catatan Baru</h2>
-            <NoteForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <NoteForm
+              onSubmit={handleCreate}
+              onCancel={() => setShowForm(false)}
+            />
           </div>
         </div>
       )}

@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useTasks } from "../hooks/useTasks";
 import { filterTasks } from "../utils/searchFilter";
+import { getErrorMessage } from "../utils/errorMessages";
+import { useToast } from "../contexts/ToastContext";
 import SearchBar from "../components/searchbar/SearchBar";
 import SkeletonCard from "../components/skeleton/SkeletonCard";
 import EmptyState from "../components/emptystate/EmptyState";
 import TaskForm from "../components/tasks/TaskForm";
 
-
 export default function TasksPage() {
   const { tasks, loading, create, update, remove } = useTasks();
+  const { toast } = useToast();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
@@ -20,22 +22,43 @@ export default function TasksPage() {
   });
 
   const handleCreate = async (data) => {
-    await create(data);
-    setShowForm(false);
+    try {
+      await create(data);
+      toast.success("Tugas berhasil ditambahkan!");
+      setShowForm(false);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal menambahkan tugas."));
+      throw err;
+    }
   };
 
   const handleUpdate = async (id, data) => {
-    await update(id, data);
-    setEditingTask(null);
+    try {
+      await update(id, data);
+      toast.success("Tugas berhasil diperbarui!");
+      setEditingTask(null);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal memperbarui tugas."));
+      throw err;
+    }
   };
 
+  // Toggle done/undone — toast hanya untuk error (kalau sukses terlalu noisy)
   const handleToggleDone = async (task) => {
-    await update(task.id, { done: !task.done });
+    try {
+      await update(task.id, { done: !task.done });
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal mengubah status tugas."));
+    }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Yakin ingin menghapus tugas ini?")) {
+    if (!window.confirm("Yakin ingin menghapus tugas ini?")) return;
+    try {
       await remove(id);
+      toast.success("Tugas berhasil dihapus.");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Gagal menghapus tugas."));
     }
   };
 
@@ -86,7 +109,9 @@ export default function TasksPage() {
         ].map((tab) => (
           <button
             key={tab.value}
-            className={`filter-tab ${statusFilter === tab.value ? "active" : ""}`}
+            className={`filter-tab ${
+              statusFilter === tab.value ? "active" : ""
+            }`}
             onClick={() => setStatusFilter(tab.value)}
           >
             {tab.label}
@@ -127,12 +152,23 @@ export default function TasksPage() {
                 borderLeft: `4px solid ${getPriorityColor(task.priority)}`,
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.75rem",
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={task.done}
                   onChange={() => handleToggleDone(task)}
-                  style={{ marginTop: "4px", cursor: "pointer", width: "18px", height: "18px" }}
+                  style={{
+                    marginTop: "4px",
+                    cursor: "pointer",
+                    width: "18px",
+                    height: "18px",
+                  }}
                 />
                 <div style={{ flex: 1 }}>
                   <h3
@@ -144,7 +180,14 @@ export default function TasksPage() {
                   >
                     {task.title}
                   </h3>
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      marginTop: "0.5rem",
+                      flexWrap: "wrap",
+                    }}
+                  >
                     <span
                       style={{
                         fontSize: "0.75rem",
@@ -193,7 +236,10 @@ export default function TasksPage() {
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Tambah Tugas Baru</h2>
-            <TaskForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} />
+            <TaskForm
+              onSubmit={handleCreate}
+              onCancel={() => setShowForm(false)}
+            />
           </div>
         </div>
       )}
