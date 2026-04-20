@@ -7,7 +7,7 @@ import SearchBar from "../components/searchbar/SearchBar";
 import SkeletonCard from "../components/skeleton/SkeletonCard";
 import EmptyState from "../components/emptystate/EmptyState";
 import NoteForm from "../components/notes/NoteForm";
-import ImageLightbox from "../components/llghtbox/ImageLightbox";
+import ImageLightbox from "../components/llghtbox/ImageLightBox";
 
 
 export default function NotesPage() {
