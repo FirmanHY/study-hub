@@ -7,6 +7,8 @@ import SearchBar from "../components/searchbar/SearchBar";
 import SkeletonCard from "../components/skeleton/SkeletonCard";
 import EmptyState from "../components/emptystate/EmptyState";
 import NoteForm from "../components/notes/NoteForm";
+import ImageLightbox from "../components/llghtbox/ImageLightBox";
+
 
 export default function NotesPage() {
   const { notes, loading, create, update, remove } = useNotes();
@@ -15,10 +17,12 @@ export default function NotesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
 
+  // State untuk image lightbox. Simpan full note (bukan cuma URL)
+  // supaya kita bisa tampilkan title sebagai caption.
+  const [previewNote, setPreviewNote] = useState(null);
+
   const filteredNotes = searchNotes(notes, searchKeyword);
 
-  // CREATE — sukses tampilkan toast, gagal tampilkan error + re-throw
-  // supaya form tidak menganggap sukses & tidak reset input
   const handleCreate = async (data) => {
     try {
       await create(data);
@@ -50,6 +54,12 @@ export default function NotesPage() {
     } catch (err) {
       toast.error(getErrorMessage(err, "Gagal menghapus catatan."));
     }
+  };
+
+  // Handler klik thumbnail — buka lightbox
+  const handleImageClick = (e, note) => {
+    e.stopPropagation();
+    setPreviewNote(note);
   };
 
   return (
@@ -99,7 +109,9 @@ export default function NotesPage() {
               {note.imageUrl && (
                 <img
                   src={note.imageUrl}
-                  alt="Lampiran"
+                  alt={`Lampiran: ${note.title}`}
+                  className="note-image-clickable"
+                  onClick={(e) => handleImageClick(e, note)}
                   style={{
                     width: "100%",
                     borderRadius: "8px",
@@ -107,6 +119,7 @@ export default function NotesPage() {
                     maxHeight: "150px",
                     objectFit: "cover",
                   }}
+                  title="Klik untuk memperbesar"
                 />
               )}
               <div className="card-footer">
@@ -156,6 +169,16 @@ export default function NotesPage() {
             />
           </div>
         </div>
+      )}
+
+      {/* Image lightbox (fullscreen preview) */}
+      {previewNote && (
+        <ImageLightbox
+          src={previewNote.imageUrl}
+          alt={`Lampiran: ${previewNote.title}`}
+          caption={previewNote.title}
+          onClose={() => setPreviewNote(null)}
+        />
       )}
     </div>
   );

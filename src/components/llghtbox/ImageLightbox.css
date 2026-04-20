@@ -1,0 +1,145 @@
+/* ===== Overlay (backdrop) ===== */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: lightbox-fade-in 0.25s ease-out;
+  cursor: zoom-out;
+}
+
+@keyframes lightbox-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== Close button (top right) ===== */
+.lightbox-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1001;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* ===== Image container ===== */
+.lightbox-content {
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: default;
+  animation: lightbox-zoom-in 0.3s ease-out;
+}
+
+@keyframes lightbox-zoom-in {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ===== Caption (optional — shows note title) ===== */
+.lightbox-caption {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  text-align: center;
+  max-width: 600px;
+  margin: 0;
+  line-height: 1.4;
+  padding: 0 1rem;
+}
+
+/* ===== Hint text at bottom ===== */
+.lightbox-hint {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  margin: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 640px) {
+  .lightbox-overlay {
+    padding: 1rem;
+  }
+
+  .lightbox-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  .lightbox-image {
+    max-height: 70vh;
+  }
+
+  .lightbox-caption {
+    font-size: 0.9rem;
+  }
+
+  .lightbox-hint {
+    font-size: 0.7rem;
+    bottom: 0.75rem;
+  }
+}
+
+/* ===== Cursor hint on clickable thumbnail di NotesPage ===== */
+.note-image-clickable {
+  cursor: zoom-in;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.note-image-clickable:hover {
+  opacity: 0.9;
+  transform: scale(1.01);
+}
