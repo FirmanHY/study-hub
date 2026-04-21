@@ -59,13 +59,14 @@ studyhub/
 ├── public/
 ├── src/
 │   ├── main.jsx                          # entry point (ReactDOM + StrictMode)
-│   ├── App.jsx                           # routing + AuthProvider
+│   ├── App.jsx                           # routing + AuthProvider + ToastProvider
 │   │
 │   ├── firebase/
 │   │   └── config.js                     # init Firebase dari env vars
 │   │
 │   ├── contexts/
-│   │   └── AuthContext.jsx               # global auth state + useAuth hook
+│   │   ├── AuthContext.jsx               # global auth state + useAuth hook
+│   │   └── ToastContext.jsx              # global toast notification + useToast hook
 │   │
 │   ├── services/                         # ⬅ pure functions, no React deps
 │   │   ├── notesService.js               # CRUD #1 — Notes
@@ -91,20 +92,26 @@ studyhub/
 │   │   │   └── SearchBar.css
 │   │   ├── skeleton/
 │   │   │   └── SkeletonCard.jsx          # skeleton loading placeholder
+│   │   ├── toast/
+│   │   │   ├── Toast.jsx                 # komponen notifikasi toast (success/error/info/warning)
+│   │   │   └── Toast.css
+│   │   ├── lightbox/
+│   │   │   ├── ImageLightBox.jsx         # fullscreen image preview (ESC to close)
+│   │   │   └── ImageLightbox.css
 │   │   ├── flashcardflip/
 │   │   │   ├── FlashCardFlip.jsx         # flip card untuk mode belajar
 │   │   │   └── FlashCardFlip.css
 │   │   ├── notes/
-│   │   │   └── NoteForm.jsx              # form create/edit catatan
+│   │   │   └── NoteForm.jsx              # form create/edit catatan (+ upload gambar)
 │   │   ├── tasks/
 │   │   │   └── TaskForm.jsx              # form create/edit tugas
 │   │   └── flashcards/
 │   │       └── FlashcardForm.jsx         # form create/edit flashcard
 │   │
 │   ├── pages/
-│   │   ├── LoginPage.jsx                 # halaman login
-│   │   ├── RegisterPage.jsx              # halaman register
-│   │   ├── NotesPage.jsx                 # halaman CRUD catatan + search
+│   │   ├── LoginPage.jsx                 # halaman login (+ validasi & show/hide password)
+│   │   ├── RegisterPage.jsx              # halaman register (+ password strength meter)
+│   │   ├── NotesPage.jsx                 # halaman CRUD catatan + search + lightbox
 │   │   ├── TasksPage.jsx                 # halaman CRUD tugas + filter status
 │   │   └── FlashcardsPage.jsx            # halaman CRUD flashcards + mode belajar
 │   │
@@ -112,7 +119,9 @@ studyhub/
 │   │   └── responsive.css                # global styles, layout, cards, modal, skeleton
 │   │
 │   └── utils/
-│       └── searchFilter.js               # helper filter/search untuk Notes & Tasks
+│       ├── searchFilter.js               # helper filter/search untuk Notes & Tasks
+│       ├── validators.js                 # validator input (email, password, nama, dll)
+│       └── errorMessages.js              # mapping error Firebase/Cloudinary → pesan ID
 │
 ├── server.js                             # Express server untuk Railway (SPA fallback)
 ├── .env.example                          # template environment variables
@@ -129,13 +138,14 @@ studyhub/
 
 1. **Separation of Concerns** — `services/` (Firebase + Cloudinary) → `hooks/` (state) → `components/` (UI). Setiap layer punya tanggung jawab tunggal.
 2. **Custom Hooks** — `useNotes`, `useTasks`, `useFlashcards` membungkus subscribe/CRUD sehingga komponen tidak perlu tahu detail Firebase.
-3. **Context API** untuk auth state global, dengan custom hook `useAuth()`.
+3. **Context API** untuk auth state (`AuthContext`) & notifikasi global (`ToastContext`), masing-masing dengan custom hook (`useAuth`, `useToast`).
 4. **Protected Routes** — halaman dashboard dijaga oleh komponen `ProtectedRoute`.
 5. **Environment Variables** — semua kredensial (Firebase + Cloudinary) tidak di-hardcode, disimpan di `.env.local` (di-gitignore).
 6. **Subscription Cleanup** — semua `onValue` listener di-unsubscribe via cleanup function di `useEffect`.
 7. **Unsigned Upload** untuk Cloudinary — tidak ada API secret di sisi client.
 8. **Controlled Forms** dengan validation, loading state, dan error handling.
-9. **Database Rules** memastikan data antar user terisolasi.
+9. **Centralized Error Mapping** — `utils/errorMessages.js` memetakan error Firebase Auth, Realtime DB, dan Cloudinary ke pesan Bahasa Indonesia yang ramah user.
+10. **Database Rules** memastikan data antar user terisolasi.
 
 ## 🚀 Setup & Menjalankan Lokal
 
